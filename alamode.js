@@ -848,6 +848,34 @@ var alamode = {
     })
   },
 
+  pathMap: function(o) {
+    var id = alamode.makeId(10);
+    var latColumn = o["lat_column"],
+        lngColumn = o["lng_column"],
+        queryName = o["query_name"],
+        htmlElement= o["html_element"] || "body",
+        applyFilter = o["apply_filter"] || false,
+        accessToken = o["mapbox_access_token"],
+        data = alamode.getDataFromQuery(queryName),
+        validData = [];
+
+    data.forEach(function(d) {
+      if (typeof d[latColumn] === "number" && typeof d[lngColumn] === "number") {
+        validData.push(d)
+      }
+    })
+
+    var uniqContainerClass = alamode.addContainerElement(htmlElement, applyFilter);
+
+    mapboxgl.accessToken = accessToken;
+    var map = new mapboxgl.Map({
+      container: id,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [-122.48383155304096, 37.82882682974591],
+      zoom: 16
+      });
+  },
+
   // Built with Leaflet
   // http://leaflet.github.io/Leaflet.heat/demo/
   leafletMap: function(o) {
