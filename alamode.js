@@ -848,6 +848,72 @@ var alamode = {
     })
   },
 
+  pathMap: function(o) {
+    var id = alamode.makeId(10);
+    var startLatColumn = o["start_lat_column"],
+        startLngColumn = o["start_lng_column"],
+        endLatColumn = o["start_lat_column"],
+        endLngColumn = o["start_lng_column"],
+        queryName = o["query_name"],
+        htmlElement= o["html_element"] || "body",
+        applyFilter = o["apply_filter"] || false,
+        accessToken = o["mapbox_access_token"],
+        height = o["height"] || 400,
+        data = alamode.getDataFromQuery(queryName),
+        validData = [];
+
+    data.forEach(function(d) {
+      if (typeof d[startLatColumn] === "number" && typeof d[startLngColumn] === "number" && 
+          typeof d[endLatColumn] === "number" && typeof d[endLngColumn] === "number") {
+        validData.push(d)
+      }
+    })
+
+    var uniqContainerClass = alamode.addContainerElement(htmlElement, applyFilter);
+
+    var mapWidth = $(uniqContainerClass).width();
+
+    d3.select(uniqContainerClass)
+      .append("div")
+      .attr("class","mode-mapbox-map")
+      .attr("id",id)
+      .style("height",height + "px")
+      .style("width",mapWidth + "px")
+
+    features = data.map(d => ({
+        type: 'Feature',
+        properties: {
+          color: '#F7455D' // red
+        },
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [d[startLatColumn], d[startLngColumn]],
+            [d[endLatColumn], d[endLngColumn]],
+          ]
+        }
+      }
+    ));
+
+    mapboxgl.accessToken = accessToken;
+    const map = new mapboxgl.Map({
+      container: id,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [-122.48383155304096, 37.82882682974591],
+      zoom: 16
+    });
+
+    map.on('load', function () {
+      map.addSource('lines', {
+        'type': 'geojson',
+        'data': {
+          'type': 'FeatureCollection',
+          'features': features
+        },
+      });
+    })
+  },
+
   // Built with Leaflet
   // http://leaflet.github.io/Leaflet.heat/demo/
   leafletMap: function(o) {
