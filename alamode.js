@@ -891,8 +891,8 @@ var alamode = {
         geometry: {
           type: 'LineString',
           coordinates: [
-            [d[startLatColumn], d[startLngColumn]],
-            [d[endLatColumn], d[endLngColumn]],
+            [validData[startLatColumn], validData[startLngColumn]],
+            [validData[endLatColumn], validData[endLngColumn]],
           ]
         }
       }
