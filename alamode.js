@@ -854,6 +854,9 @@ var alamode = {
         startLngColumn = o["start_lng_column"],
         endLatColumn = o["start_lat_column"],
         endLngColumn = o["start_lng_column"],
+        centerLat = o["center_lat"] || 39.5,
+        centerLng = o["center_lng"] || -98.35,
+        zoom = o["starting_zoom"] || 4,
         queryName = o["query_name"],
         htmlElement= o["html_element"] || "body",
         applyFilter = o["apply_filter"] || false,
@@ -895,23 +898,25 @@ var alamode = {
       }
     ));
 
-    mapboxgl.accessToken = accessToken;
-    const map = new mapboxgl.Map({
-      container: id,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [-122.48383155304096, 37.82882682974591],
-      zoom: 16
+    var baseLayer = L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18
     });
 
-    map.on('load', function () {
-      map.addSource('lines', {
-        'type': 'geojson',
-        'data': {
-          'type': 'FeatureCollection',
-          'features': features
-        },
-      });
-    })
+    var geoJsonLayer = L.geoJSON(features)
+
+    var C = {
+      "lat": centerLat,
+      "lng": centerLng,
+      "zoom": zoom
+    };
+
+    var map = new L.Map(id, {
+      center: new L.LatLng(C.lat, C.lng),
+      zoom: Math.floor(C.zoom),
+      layers: [baseLayer, geoJsonLayer]
+    });
+
   },
 
   // Built with Leaflet
