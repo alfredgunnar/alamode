@@ -906,8 +906,8 @@ var alamode = {
     var geoJsonLayer = L.geoJSON(features, {
       style: {
         "color": "#ff7800",
-        "weight": 5,
-        "opacity": 0.65
+        "weight": 100,
+        "opacity": 1
       }
     })
 
