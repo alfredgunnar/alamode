@@ -865,25 +865,50 @@ var alamode = {
         data = alamode.getDataFromQuery(queryName),
         validData = [];
 
+    if (einridePathMap === null) {
+      var uniqContainerClass = alamode.addContainerElement(htmlElement, applyFilter);
+
+      var mapWidth = $(uniqContainerClass).width();
+
+      d3.select(uniqContainerClass)
+        .append("div")
+        .attr("class","mode-mapbox-map")
+        .attr("id",id)
+        .style("height",height + "px")
+        .style("width",mapWidth + "px")
+
+      var baseLayer = L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18
+      });
+  
+      var geoJsonLayer = L.geoJSON()
+  
+      var C = {
+        "lat": centerLat,
+        "lng": centerLng,
+        "zoom": zoom
+      };
+  
+      var map = new L.Map(id, {
+        center: new L.LatLng(C.lat, C.lng),
+        zoom: Math.floor(C.zoom),
+        layers: [baseLayer, geoJsonLayer]
+      });
+
+      einridePathMap = {
+        map,
+        baseLayer,
+        geoJsonLayer
+      }
+    }
+
     data.forEach(function(d) {
       if (typeof d[startLatColumn] === "number" && typeof d[startLngColumn] === "number" && 
           typeof d[endLatColumn] === "number" && typeof d[endLngColumn] === "number") {
         validData.push(d)
       }
     })
-
-    console.log("validData", validData)
-
-    var uniqContainerClass = alamode.addContainerElement(htmlElement, applyFilter);
-
-    var mapWidth = $(uniqContainerClass).width();
-
-    d3.select(uniqContainerClass)
-      .append("div")
-      .attr("class","mode-mapbox-map")
-      .attr("id",id)
-      .style("height",height + "px")
-      .style("width",mapWidth + "px")
 
     features = data.map(d => ({
         type: 'Feature',
@@ -900,30 +925,8 @@ var alamode = {
       }
     ));
 
-    var baseLayer = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18
-    });
-
-    var geoJsonLayer = L.geoJSON(features, {
-      style: {
-        "color": "#ff7800",
-        "weight": 2,
-        "opacity": 1
-      }
-    })
-
-    var C = {
-      "lat": centerLat,
-      "lng": centerLng,
-      "zoom": zoom
-    };
-
-    var map = new L.Map(id, {
-      center: new L.LatLng(C.lat, C.lng),
-      zoom: Math.floor(C.zoom),
-      layers: [baseLayer, geoJsonLayer]
-    });
+    einridePathMap.geoJsonLayer.clearLayers();
+    einridePathMap.geoJsonLayer.addData(features);
 
   },
 
@@ -3408,3 +3411,5 @@ var alamode = {
    
 
 }
+
+var einridePathMap = null;
