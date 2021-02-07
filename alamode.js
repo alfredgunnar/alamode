@@ -891,8 +891,8 @@ var alamode = {
         geometry: {
           type: 'LineString',
           coordinates: [
-            [validData[startLatColumn], validData[startLngColumn]],
-            [validData[endLatColumn], validData[endLngColumn]],
+            [validData[startLngColumn], validData[startLatColumn]],
+            [validData[endLngColumn], validData[endLatColumn]],
           ]
         }
       }
@@ -903,7 +903,13 @@ var alamode = {
       maxZoom: 18
     });
 
-    var geoJsonLayer = L.geoJSON(features)
+    var geoJsonLayer = L.geoJSON(features, {
+      style: {
+        "color": "#ff7800",
+        "weight": 5,
+        "opacity": 0.65
+      }
+    })
 
     var C = {
       "lat": centerLat,
