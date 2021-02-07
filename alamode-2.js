@@ -852,8 +852,8 @@ var alamode = {
     var id = alamode.makeId(10);
     var startLatColumn = o["start_lat_column"],
         startLngColumn = o["start_lng_column"],
-        endLatColumn = o["start_lat_column"],
-        endLngColumn = o["start_lng_column"],
+        endLatColumn = o["end_lat_column"],
+        endLngColumn = o["end_lng_column"],
         centerLat = o["center_lat"] || 39.5,
         centerLng = o["center_lng"] || -98.35,
         zoom = o["starting_zoom"] || 4,
@@ -871,6 +871,8 @@ var alamode = {
         validData.push(d)
       }
     })
+
+    console.log("validData", validData)
 
     var uniqContainerClass = alamode.addContainerElement(htmlElement, applyFilter);
 
@@ -891,8 +893,8 @@ var alamode = {
         geometry: {
           type: 'LineString',
           coordinates: [
-            [d[startLatColumn], d[startLngColumn]],
-            [d[endLatColumn], d[endLngColumn]],
+            [d[startLngColumn], d[startLatColumn]],
+            [d[endLngColumn], d[endLatColumn]],
           ]
         }
       }
@@ -903,7 +905,13 @@ var alamode = {
       maxZoom: 18
     });
 
-    var geoJsonLayer = L.geoJSON(features)
+    var geoJsonLayer = L.geoJSON(features, {
+      style: {
+        "color": "#ff7800",
+        "weight": 2,
+        "opacity": 1
+      }
+    })
 
     var C = {
       "lat": centerLat,
