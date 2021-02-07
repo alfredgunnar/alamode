@@ -3,6 +3,8 @@
 // Visualizations for Mode reports
 var version = "0.23";
 
+var einridePathMap = null;
+
 var alamode = {
 
   reportError: function(msg) {
@@ -854,12 +856,13 @@ var alamode = {
         startLngColumn = o["start_lng_column"],
         endLatColumn = o["end_lat_column"],
         endLngColumn = o["end_lng_column"],
-        centerLat = o["center_lat"] || 39.5,
-        centerLng = o["center_lng"] || -98.35,
+        centerLat = o["center_lat"] || 0,
+        centerLng = o["center_lng"] || 0,
         zoom = o["starting_zoom"] || 4,
         queryName = o["query_name"],
         htmlElement= o["html_element"] || "body",
         applyFilter = o["apply_filter"] || false,
+        styleFn = o["style_fn"],
         accessToken = o["mapbox_access_token"],
         height = o["height"] || 400,
         data = alamode.getDataFromQuery(queryName),
@@ -912,9 +915,7 @@ var alamode = {
 
     features = data.map(d => ({
         type: 'Feature',
-        properties: {
-          color: '#F7455D' // red
-        },
+        properties: d,
         geometry: {
           type: 'LineString',
           coordinates: [
@@ -927,7 +928,9 @@ var alamode = {
 
     einridePathMap.geoJsonLayer.clearLayers();
     einridePathMap.geoJsonLayer.addData(features);
-
+    if (styleFn !== undefined) {
+      einridePathMap.geoJsonLayer.setStyle(feature => styleFn(feature.properties));
+    }
   },
 
   // Built with Leaflet
@@ -3411,5 +3414,3 @@ var alamode = {
    
 
 }
-
-var einridePathMap = null;
