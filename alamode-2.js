@@ -3,6 +3,8 @@
 // Visualizations for Mode reports
 var version = "0.23";
 
+var einridePathMap = null;
+
 var alamode = {
 
   reportError: function(msg) {
@@ -854,16 +856,59 @@ var alamode = {
         startLngColumn = o["start_lng_column"],
         endLatColumn = o["end_lat_column"],
         endLngColumn = o["end_lng_column"],
-        centerLat = o["center_lat"] || 39.5,
-        centerLng = o["center_lng"] || -98.35,
+        centerLat = o["center_lat"] || 0,
+        centerLng = o["center_lng"] || 0,
         zoom = o["starting_zoom"] || 4,
         queryName = o["query_name"],
         htmlElement= o["html_element"] || "body",
         applyFilter = o["apply_filter"] || false,
+        styleFn = o["style_fn"],
+        popupContentFn = o["popup_content_fn"],
         accessToken = o["mapbox_access_token"],
         height = o["height"] || 400,
         data = alamode.getDataFromQuery(queryName),
         validData = [];
+
+    if (einridePathMap === null) {
+      einridePathMap = {};
+      var uniqContainerClass = alamode.addContainerElement(htmlElement, applyFilter);
+
+      var mapWidth = $(uniqContainerClass).width();
+
+      d3.select(uniqContainerClass)
+        .append("div")
+        .attr("class","mode-mapbox-map")
+        .attr("id",id)
+        .style("height",height + "px")
+        .style("width",mapWidth + "px")
+
+      einridePathMap.baseLayer = L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18
+      });
+
+      einridePathMap.onEachFeature = () => {}
+  
+      einridePathMap.geoJsonLayer = L.geoJSON({
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [0, 0] // placeholder geoJSON
+          }
+        }, {onEachFeature: einridePathMap.onEachFeature})
+  
+      var C = {
+        "lat": centerLat,
+        "lng": centerLng,
+        "zoom": zoom
+      };
+  
+      einridePathMap.map = new L.Map(id, {
+        center: new L.LatLng(C.lat, C.lng),
+        zoom: Math.floor(C.zoom),
+        layers: [einridePathMap.baseLayer, einridePathMap.geoJsonLayer]
+      });
+    }
 
     data.forEach(function(d) {
       if (typeof d[startLatColumn] === "number" && typeof d[startLngColumn] === "number" && 
@@ -872,24 +917,9 @@ var alamode = {
       }
     })
 
-    console.log("validData", validData)
-
-    var uniqContainerClass = alamode.addContainerElement(htmlElement, applyFilter);
-
-    var mapWidth = $(uniqContainerClass).width();
-
-    d3.select(uniqContainerClass)
-      .append("div")
-      .attr("class","mode-mapbox-map")
-      .attr("id",id)
-      .style("height",height + "px")
-      .style("width",mapWidth + "px")
-
     features = data.map(d => ({
         type: 'Feature',
-        properties: {
-          color: '#F7455D' // red
-        },
+        properties: d,
         geometry: {
           type: 'LineString',
           coordinates: [
@@ -900,31 +930,16 @@ var alamode = {
       }
     ));
 
-    var baseLayer = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18
-    });
-
-    var geoJsonLayer = L.geoJSON(features, {
-      style: {
-        "color": "#ff7800",
-        "weight": 2,
-        "opacity": 1
+    einridePathMap.geoJsonLayer.clearLayers();
+    einridePathMap.onEachFeature = (feature, layer) => {
+      if (feature.properties && popupContentFn) {
+        layer.bindPopup(popupContentFn(feature.properties));
       }
-    })
-
-    var C = {
-      "lat": centerLat,
-      "lng": centerLng,
-      "zoom": zoom
     };
-
-    var map = new L.Map(id, {
-      center: new L.LatLng(C.lat, C.lng),
-      zoom: Math.floor(C.zoom),
-      layers: [baseLayer, geoJsonLayer]
-    });
-
+    einridePathMap.geoJsonLayer.addData(features);
+    if (styleFn !== undefined) {
+      einridePathMap.geoJsonLayer.setStyle(feature => styleFn(feature.properties));
+    }
   },
 
   // Built with Leaflet

@@ -863,12 +863,14 @@ var alamode = {
         htmlElement= o["html_element"] || "body",
         applyFilter = o["apply_filter"] || false,
         styleFn = o["style_fn"],
+        popupContentFn = o["popup_content_fn"],
         accessToken = o["mapbox_access_token"],
         height = o["height"] || 400,
         data = alamode.getDataFromQuery(queryName),
         validData = [];
 
     if (einridePathMap === null) {
+      einridePathMap = {};
       var uniqContainerClass = alamode.addContainerElement(htmlElement, applyFilter);
 
       var mapWidth = $(uniqContainerClass).width();
@@ -880,12 +882,20 @@ var alamode = {
         .style("height",height + "px")
         .style("width",mapWidth + "px")
 
-      var baseLayer = L.tileLayer(
+      einridePathMap.baseLayer = L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18
       });
+
+      einridePathMap.onEachFeature = () => {}
   
-      var geoJsonLayer = L.geoJSON()
+      einridePathMap.geoJsonLayer = L.geoJSON({
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [0, 0] // placeholder geoJSON
+          }
+        }, {onEachFeature: einridePathMap.onEachFeature})
   
       var C = {
         "lat": centerLat,
@@ -893,17 +903,11 @@ var alamode = {
         "zoom": zoom
       };
   
-      var map = new L.Map(id, {
+      einridePathMap.map = new L.Map(id, {
         center: new L.LatLng(C.lat, C.lng),
         zoom: Math.floor(C.zoom),
-        layers: [baseLayer, geoJsonLayer]
+        layers: [einridePathMap.baseLayer, einridePathMap.geoJsonLayer]
       });
-
-      einridePathMap = {
-        map,
-        baseLayer,
-        geoJsonLayer
-      }
     }
 
     data.forEach(function(d) {
@@ -927,6 +931,11 @@ var alamode = {
     ));
 
     einridePathMap.geoJsonLayer.clearLayers();
+    einridePathMap.onEachFeature = (feature, layer) => {
+      if (feature.properties && popupContentFn) {
+        layer.bindPopup(popupContentFn(feature.properties));
+      }
+    };
     einridePathMap.geoJsonLayer.addData(features);
     if (styleFn !== undefined) {
       einridePathMap.geoJsonLayer.setStyle(feature => styleFn(feature.properties));
