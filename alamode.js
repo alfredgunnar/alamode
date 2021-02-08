@@ -895,7 +895,7 @@ var alamode = {
             "type": "Point",
             "coordinates": [0, 0] // placeholder geoJSON
           }
-        }, {onEachFeature: einridePathMap.onEachFeature})
+        }, {onEachFeature: (feat, layer) => einridePathMap.onEachFeature(feat, layer)})
   
       var C = {
         "lat": centerLat,
