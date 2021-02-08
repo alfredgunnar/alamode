@@ -873,14 +873,16 @@ var alamode = {
       einridePathMap = {};
       var uniqContainerClass = alamode.addContainerElement(htmlElement, applyFilter);
 
-      var mapWidth = $(uniqContainerClass).width();
+      d3.select(uniqContainerClass)
+        .style("width", "100%")
+        .style("max-width", "none")
 
       d3.select(uniqContainerClass)
         .append("div")
         .attr("class","mode-mapbox-map")
         .attr("id",id)
         .style("height",height + "px")
-        .style("width",mapWidth + "px")
+        .style("width", "100%")
 
       einridePathMap.baseLayer = L.tileLayer(
         'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + accessToken, {
